@@ -36,7 +36,7 @@
 
         /* Specific background images for the BODY based on theme */
         /* IMPORTANT: Ensure these image files are present in the same directory (or correct relative path)
-            on your GitHub Pages server. File names are case-sensitive on GitHub! */
+             on your GitHub Pages server. File names are case-sensitive on GitHub! */
         .body-theme-forest {
             background-image: url('forestBG.png'); /* Original local path */
         }
@@ -848,7 +848,7 @@
                         getFireHeat(x - 1, y + 1) + // Bottom-left
                         getFireHeat(x, y + 1) +    // Directly below
                         getFireHeat(x + 1, y + 1) + // Bottom-right
-                        getFireHeat(x, y + 2)       // Two steps below (to give more upward momentum)
+                        getFireHeat(x, y + 2)      // Two steps below (to give more upward momentum)
                     ) / 4.1;
                     
                     setFireHeat(x, y, c); // Update the current pixel's heat
@@ -1132,6 +1132,14 @@
                     console.log("Attempting to play winner animation.");
                 } else {
                     console.warn("Winner animation object is not loaded or null. Cannot play.");
+                }
+                // NEW: Award badge for winning the game
+                const badgeName = `${currentDifficulty}gradealgebrawinner`;
+                const badgeDisplayName = `${currentDifficulty} Grade Algebra Winner`;
+                if (window.parent && typeof window.parent.awardBadge === 'function') {
+                    window.parent.awardBadge(badgeName, badgeDisplayName);
+                } else {
+                    console.warn("Parent window's awardBadge function not found. Badge cannot be awarded.");
                 }
             }
         }
