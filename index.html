@@ -364,7 +364,6 @@
             animation: fadeInUp 0.8s ease-out 0.7s backwards; /* Delayed animation */
         }
         .score-timer span {
-            background: linear-gradient(45deg, #ffe0b2, #ffd700);
             padding: 10px 20px;
             border-radius: 12px;
             box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.15);
@@ -1133,7 +1132,7 @@
                 } else {
                     console.warn("Winner animation object is not loaded or null. Cannot play.");
                 }
-                // NEW: Award badge for winning the game
+                // Award badge for winning the game
                 const badgeName = `${currentDifficulty}gradealgebrawinner`;
                 const badgeDisplayName = `${currentDifficulty} Grade Algebra Winner`;
                 if (window.parent && typeof window.parent.awardBadge === 'function') {
@@ -1309,6 +1308,17 @@
                 playClapSound();
                 playHornSound();
                 // --- End Lottie Confetti Trigger ---
+
+                // NEW: Award 1st Step badge if it's the first round and passed
+                if (currentRound === 1) {
+                    const firstStepBadgeName = `1ststep${currentDifficulty}gradealgebra`;
+                    const firstStepBadgeDisplayName = `1st Step ${currentDifficulty} Grade Algebra`;
+                    if (window.parent && typeof window.parent.awardBadge === 'function') {
+                        window.parent.awardBadge(firstStepBadgeName, firstStepBadgeDisplayName);
+                    } else {
+                        console.warn("Parent window's awardBadge function not found. 1st Step badge cannot be awarded.");
+                    }
+                }
 
                 currentRound++;
                 if (currentRound > totalRounds) {
