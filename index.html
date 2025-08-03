@@ -1309,7 +1309,7 @@
                 playHornSound();
                 // --- End Lottie Confetti Trigger ---
 
-                // NEW: Award 1st Step badge if it's the first round and passed
+                // Award 1st Step badge if it's the first round and passed
                 if (currentRound === 1) {
                     const firstStepBadgeName = `1ststep${currentDifficulty}gradealgebra`;
                     const firstStepBadgeDisplayName = `1st Step ${currentDifficulty} Grade Algebra`;
@@ -1317,6 +1317,17 @@
                         window.parent.awardBadge(firstStepBadgeName, firstStepBadgeDisplayName);
                     } else {
                         console.warn("Parent window's awardBadge function not found. 1st Step badge cannot be awarded.");
+                    }
+                }
+                
+                // NEW: Award Halfway Hero badge if it's the 5th round and passed
+                if (currentRound === 5) {
+                    const halfwayHeroBadgeName = `halfwayhero${currentDifficulty}gradealgebra`;
+                    const halfwayHeroBadgeDisplayName = `Halfway Hero ${currentDifficulty} Grade Algebra`;
+                    if (window.parent && typeof window.parent.awardBadge === 'function') {
+                        window.parent.awardBadge(halfwayHeroBadgeName, halfwayHeroBadgeDisplayName);
+                    } else {
+                        console.warn("Parent window's awardBadge function not found. Halfway Hero badge cannot be awarded.");
                     }
                 }
 
