@@ -251,7 +251,7 @@
         /* New: Styles for "on fire" input group */
         .input-group-on-fire {
             box-shadow: 0 0 15px 8px rgba(255, 165, 0, 0.7),
-                                0 0 25px 15px rgba(255, 69, 0, 0.5); /* Fiery glow */
+                        0 0 25px 15px rgba(255, 69, 0, 0.5); /* Fiery glow */
             border-color: #ff4500 !important; /* Stronger border */
             animation: pulseGlow 1.5s infinite alternate; /* Pulsing effect */
         }
@@ -364,6 +364,7 @@
             animation: fadeInUp 0.8s ease-out 0.7s backwards; /* Delayed animation */
         }
         .score-timer span {
+            background: linear-gradient(45deg, #ffe0b2, #ffd700);
             padding: 10px 20px;
             border-radius: 12px;
             box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.15);
@@ -397,6 +398,22 @@
             .btn {
                 padding: 15px 30px;
                 font-size: 1.2rem;
+            }
+            .input-group {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .feedback-area {
+                font-size: 1.4rem;
+                min-height: 40px;
+            }
+            .score-timer {
+                flex-direction: column;
+                gap: 10px;
+                font-size: 1.2rem;
+            }
+            .score-timer span {
+                padding: 8px 15px;
             }
         }
 
@@ -579,8 +596,8 @@
 
     <!-- Hidden audio elements for click, correct, wrong, clap, and horn sounds -->
     <!-- IMPORTANT: Ensure these audio files (correct.wav, wrong.wav, etc.) are present
-            in the same directory (or correct relative path) on your GitHub Pages server.
-            File names are case-sensitive on GitHub! -->
+             in the same directory (or correct relative path) on your GitHub Pages server.
+             File names are case-sensitive on GitHub! -->
     <audio id="correctSoundElement" preload="auto">
         <source src="correct.wav" type="audio/wav">
         <source src="correct.mp3" type="audio/mpeg">
@@ -605,6 +622,12 @@
         <source src="horn.mp3" type="audio/mpeg">
         <source src="horn.ogg" type="audio/ogg">
         <source src="horn.wav" type="audio/wav">
+    </audio>
+    <!-- NEW: Winner sound element -->
+    <audio id="winnerSoundElement" preload="auto">
+        <source src="winner.mp3" type="audio/mpeg">
+        <source src="winner.ogg" type="audio/ogg">
+        <source src="winner.wav" type="audio/wav">
     </audio>
 
 
@@ -653,6 +676,9 @@
         let questionsPerRound = 20; // Number of questions per round
         let correctAnswersInRound = 0;
         const passingPercentage = 80; // 80% to pass a round
+
+        // Track consecutive correct answers for the "on fire" effect
+        let consecutiveCorrectAnswers = 0;
 
         // Fire effect variables
         const fireCanvas = document.getElementById('fireCanvas');
@@ -1132,14 +1158,6 @@
                 } else {
                     console.warn("Winner animation object is not loaded or null. Cannot play.");
                 }
-                // Award badge for winning the game
-                const badgeName = `${currentDifficulty}gradealgebrawinner`;
-                const badgeDisplayName = `${currentDifficulty} Grade Algebra Winner`;
-                if (window.parent && typeof window.parent.awardBadge === 'function') {
-                    window.parent.awardBadge(badgeName, badgeDisplayName);
-                } else {
-                    console.warn("Parent window's awardBadge function not found. Badge cannot be awarded.");
-                }
             }
         }
 
@@ -1295,37 +1313,35 @@
                 feedbackMessage.textContent = `Round ${currentRound} Passed! Great job with ${percentageCorrect.toFixed(0)}%!`;
                 feedback.className = "feedback-area feedback-round-pass";
                 
-                // --- Lottie Confetti Trigger ---
-                confettiContainer.classList.add('active'); // Show confetti container
-                // Ensure confettiAnimation is loaded before attempting to play
-                if (confettiAnimation) {
-                    confettiAnimation.goToAndPlay(0, true); // Play confetti from beginning
-                    console.log("Attempting to play confetti animation.");
-                } else {
-                    console.warn("Confetti animation object is not loaded or null. Cannot play.");
-                }
-                // Play clap and horn sounds along with confetti
-                playClapSound();
-                playHornSound();
-                // --- End Lottie Confetti Trigger ---
+                // NEW: Local check for the "1st Step" badge
+                const user = window.parent.localStorage.getItem('user');
+                const userObj = user ? JSON.parse(user) : null;
+                const firstStepBadgeName = `1ststep${currentDifficulty}gradealgebra`;
+                const hasFirstStepBadge = userObj && userObj.badges && userObj.badges.includes(firstStepBadgeName);
 
-                // Award 1st Step badge if it's the first round and passed
-                if (currentRound === 1) {
-                    const firstStepBadgeName = `1ststep${currentDifficulty}gradealgebra`;
-                    const firstStepBadgeDisplayName = `1st Step ${currentDifficulty} Grade Algebra`;
+                // NEW: Local check for the "Halfway Hero" badge
+                const halfwayHeroBadgeName = `halfwayhero${currentDifficulty}gradealgebra`;
+                const hasHalfwayHeroBadge = userObj && userObj.badges && userObj.badges.includes(halfwayHeroBadgeName);
+
+                // NEW: Local check for the "Winner" badge
+                const winnerBadgeName = `${currentDifficulty}gradealgebrawinner`;
+                const hasWinnerBadge = userObj && userObj.badges && userObj.badges.includes(winnerBadgeName);
+
+                // Award "1st Step" badge for the current difficulty (grade) if it's the first round and they don't have it yet
+                if (currentRound === 1 && !hasFirstStepBadge) {
                     if (window.parent && typeof window.parent.awardBadge === 'function') {
-                        window.parent.awardBadge(firstStepBadgeName, firstStepBadgeDisplayName);
+                        const badgeDisplayName = `1st Step ${currentDifficulty} Grade Algebra`;
+                        window.parent.awardBadge(firstStepBadgeName, badgeDisplayName);
                     } else {
                         console.warn("Parent window's awardBadge function not found. 1st Step badge cannot be awarded.");
                     }
                 }
                 
-                // NEW: Award Halfway Hero badge if it's the 5th round and passed
-                if (currentRound === 5) {
-                    const halfwayHeroBadgeName = `halfwayhero${currentDifficulty}gradealgebra`;
-                    const halfwayHeroBadgeDisplayName = `Halfway Hero ${currentDifficulty} Grade Algebra`;
+                // Award "Halfway Hero" badge for the current difficulty (grade) if it's the 5th round and they don't have it yet
+                if (currentRound === 5 && !hasHalfwayHeroBadge) {
                     if (window.parent && typeof window.parent.awardBadge === 'function') {
-                        window.parent.awardBadge(halfwayHeroBadgeName, halfwayHeroBadgeDisplayName);
+                        const badgeDisplayName = `Halfway Hero ${currentDifficulty} Grade Algebra`;
+                        window.parent.awardBadge(halfwayHeroBadgeName, badgeDisplayName);
                     } else {
                         console.warn("Parent window's awardBadge function not found. Halfway Hero badge cannot be awarded.");
                     }
@@ -1333,7 +1349,16 @@
 
                 currentRound++;
                 if (currentRound > totalRounds) {
-                    setTimeout(endGame, 2000); // Game over if all rounds completed
+                    // Award "Winner" badge for the specific grade if all 10 rounds are passed and they don't have it yet
+                    if (window.parent && typeof window.parent.awardBadge === 'function' && !hasWinnerBadge) {
+                        const badgeDisplayName = `${currentDifficulty} Grade Algebra Winner`;
+                        window.parent.awardBadge(winnerBadgeName, badgeDisplayName);
+                    } else {
+                        console.warn("Parent window's awardBadge function not found or user already has the badge. Cannot award badge.");
+                    }
+                    
+                    playWinnerSound(); // Play winner sound when the game ends successfully
+                    setTimeout(endGame, 2000);
                 } else {
                     setTimeout(startNewRound, 2000);
                 }
@@ -1384,6 +1409,7 @@
         const clickSoundElement = document.getElementById('clickSoundElement');
         const clapSoundElement = document.getElementById('clapSoundElement');
         const hornSoundElement = document.getElementById('hornSoundElement');
+        const winnerSoundElement = document.getElementById('winnerSoundElement'); // NEW: Get winner sound element
 
         /**
          * Generic play sound function to handle multiple audio elements
@@ -1417,6 +1443,11 @@
 
         function playHornSound() {
             playSound(hornSoundElement, 'horn');
+        }
+
+        // NEW: Play winner sound function
+        function playWinnerSound() {
+            playSound(winnerSoundElement, 'winner');
         }
 
         // --- Event Listeners ---
@@ -1552,13 +1583,13 @@
                     console.error("Ensure 'winner.lottie' exists at the correct path and its name matches exactly (case-sensitive) on GitHub.");
                 });
                 winnerAnimation.addEventListener('error', (e) => {
-                    console.error("Winner Lottie animation encountered an error:", e);
+                    console.error("Lottie animation encountered an error:", e);
                 });
                 winnerAnimation.addEventListener('DOMLoaded', () => {
                     console.log("Winner Lottie animation DOM loaded successfully.");
                 });
                 winnerAnimation.addEventListener('loaded_ready', () => {
-                    console.log("Winner Lottie animation loaded and ready.");
+                    console.log("Winner animation loaded and ready.");
                 });
 
                 // Event listener for when the winner animation completes
