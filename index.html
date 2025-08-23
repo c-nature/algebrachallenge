@@ -586,13 +586,53 @@
         let fireAnimationId;
         let confettiAnimation = null;
         let winnerAnimation = null;
+        
+        // --- UPDATED Difficulty Settings ---
         const difficultySettings = {
-            '7th': { themeClass: 'body-theme-forest', problemTypes: ['linear'], min_a: 1, max_a: 10, min_b: -20, max_b: 20, min_x: -20, max_x: 20, a_increment: 1, b_increment: 10, x_increment: 10 },
-            '8th': { themeClass: 'body-theme-desert', problemTypes: ['linear', 'square_root'], min_a: 1, max_a: 15, min_b: -30, max_b: 30, min_x: -30, max_x: 30, a_increment: 2, b_increment: 15, x_increment: 15, min_root: 1, max_root: 10, root_increment: 2 },
-            '9th': { themeClass: 'body-theme-mountain', problemTypes: ['linear', 'square_root'], min_a: 1, max_a: 20, min_b: -50, max_b: 50, min_x: -50, max_x: 50, a_increment: 3, b_increment: 20, x_increment: 20, min_root: 1, max_root: 15, root_increment: 3 },
-            '10th': { themeClass: 'body-theme-space', problemTypes: ['linear', 'square_root'], min_a: 1, max_a: 25, min_b: -100, max_b: 100, min_x: -100, max_x: 100, a_increment: 5, b_increment: 30, x_increment: 30, min_root: 1, max_root: 20, root_increment: 5 },
-            '11th': { themeClass: 'body-theme-galaxy', problemTypes: ['quadratic'], min_x_quad_root: -10, max_x_quad_root: 10, min_k_quad: 1, max_k_quad: 5, x_quad_root_increment: 2, k_quad_increment: 1 }
+            '7th': { 
+                themeClass: 'body-theme-forest', 
+                problemTypes: ['linear'], 
+                min_a: 1, max_a: 5, 
+                min_b: -10, max_b: 10, 
+                min_x: -10, max_x: 10, 
+                a_increment: 1, b_increment: 2, x_increment: 2 
+            },
+            '8th': { 
+                themeClass: 'body-theme-desert', 
+                problemTypes: ['linear'], 
+                min_a: -5, max_a: 10, 
+                min_b: -20, max_b: 20, 
+                min_x: -15, max_x: 15, 
+                a_increment: 2, b_increment: 5, x_increment: 3 
+            },
+            '9th': { 
+                themeClass: 'body-theme-mountain', 
+                problemTypes: ['linear', 'square_root'], 
+                min_a: -10, max_a: 15, 
+                min_b: -30, max_b: 30, 
+                min_x: -20, max_x: 20, 
+                a_increment: 3, b_increment: 8, x_increment: 5, 
+                min_root: 1, max_root: 12, root_increment: 2 
+            },
+            '10th': { 
+                themeClass: 'body-theme-space', 
+                problemTypes: ['linear', 'square_root', 'quadratic'], 
+                min_a: -15, max_a: 20, 
+                min_b: -50, max_b: 50, 
+                min_x: -25, max_x: 25, 
+                a_increment: 4, b_increment: 10, x_increment: 7, 
+                min_root: 2, max_root: 15, root_increment: 3,
+                min_x_quad_root: -8, max_x_quad_root: 8, min_k_quad: 1, max_k_quad: 3, x_quad_root_increment: 1, k_quad_increment: 1
+            },
+            '11th': { 
+                themeClass: 'body-theme-galaxy', 
+                problemTypes: ['quadratic'], 
+                min_x_quad_root: -12, max_x_quad_root: 12, 
+                min_k_quad: 1, max_k_quad: 6, 
+                x_quad_root_increment: 2, k_quad_increment: 1 
+            }
         };
+
         let consecutiveCorrectAnswers = 0;
 
         // --- Badge Awarding Logic ---
@@ -793,7 +833,7 @@
             const baseSettings = difficultySettings[currentDifficulty];
             const adjustedSettings = adjustDifficultyForRound(baseSettings, currentRound);
             const problemType = adjustedSettings.problemTypes[getRandomInt(0, adjustedSettings.problemTypes.length - 1)];
-            let problemText = '', answer;
+            let problemText = '', answer, altAnswer = null;
 
             switch (problemType) {
                 case 'linear':
@@ -802,12 +842,12 @@
                     let x = getRandomInt(adjustedSettings.min_x, adjustedSettings.max_x);
                     let b = getRandomInt(adjustedSettings.min_b, adjustedSettings.max_b);
                     let c = a * x + b;
-                    problemText = `${a}x ${b >= 0 ? '+' : ''} ${b} = ${c}, solve for x`;
+                    problemText = `${a}x ${b >= 0 ? '+' : '-'} ${Math.abs(b)} = ${c}, solve for x`;
                     answer = x;
                     break;
                 case 'square_root':
                     let root = getRandomInt(adjustedSettings.min_root, adjustedSettings.max_root);
-                    problemText = `√${root * root} = ?, solve for x`;
+                    problemText = `√${root * root} = ?`;
                     answer = root;
                     break;
                 case 'quadratic':
@@ -815,17 +855,32 @@
                     let x2 = getRandomInt(adjustedSettings.min_x_quad_root, adjustedSettings.max_x_quad_root);
                     let k = getRandomInt(adjustedSettings.min_k_quad, adjustedSettings.max_k_quad);
                     while (k === 0) k = getRandomInt(adjustedSettings.min_k_quad, adjustedSettings.max_k_quad);
-                    let A = k, B = k * (-x1 - x2), C = k * (x1 * x2);
-                    let B_str = B === 0 ? '' : (B > 0 ? `+ ${B}x` : `- ${Math.abs(B)}x`);
-                    let C_str = C === 0 ? '' : (C > 0 ? `+ ${C}` : `- ${Math.abs(C)}`);
-                    problemText = `${A}x² ${B_str} ${C_str} = 0, find one integer solution for x`;
-                    answer = Math.min(x1, x2);
+                    
+                    let A = k;
+                    let B = k * (-x1 - x2);
+                    let C = k * (x1 * x2);
+
+                    let A_str = A === 1 ? 'x²' : (A === -1 ? '-x²' : `${A}x²`);
+                    let B_str = '';
+                    if (B !== 0) {
+                        if (B > 0) B_str = ` + ${B === 1 ? '' : B}x`;
+                        else B_str = ` - ${B === -1 ? '' : Math.abs(B)}x`;
+                    }
+                    let C_str = '';
+                    if (C !== 0) {
+                        if (C > 0) C_str = ` + ${C}`;
+                        else C_str = ` - ${Math.abs(C)}`;
+                    }
+
+                    problemText = `${A_str}${B_str}${C_str} = 0, find one integer solution for x`;
+                    answer = x1;
+                    altAnswer = x2;
                     break;
                 default:
                     problemText = "Error: Unknown problem type.";
                     answer = 0;
             }
-            currentProblem = { problemText, answer };
+            currentProblem = { problemText, answer, altAnswer };
             initialMessageSpan.textContent = problemText;
             answerInput.value = '';
             answerInput.focus();
@@ -892,7 +947,7 @@
             anime({ targets: submitBtn, scale: [1, 0.9, 1], duration: 200, easing: 'easeInOutQuad' });
             clearInterval(perQuestionTimerInterval);
             const userAnswer = parseInt(answerInput.value);
-            const correctAnswer = currentProblem.answer;
+            const { answer, altAnswer } = currentProblem;
 
             if (isNaN(userAnswer)) {
                 feedbackMessage.textContent = "Please enter a number!";
@@ -900,10 +955,16 @@
                 consecutiveCorrectAnswers = 0;
                 deactivateFireEffect();
                 playWrongSound();
+                // Don't advance to next question, let them try again
+                startPerQuestionTimer();
                 return;
             }
+
             questionsAnsweredInRound++;
-            if (userAnswer === correctAnswer) {
+            
+            const isCorrect = (userAnswer === answer) || (altAnswer !== null && userAnswer === altAnswer);
+
+            if (isCorrect) {
                 score += 10; correctAnswersInRound++; consecutiveCorrectAnswers++;
                 feedbackMessage.textContent = "Correct! ✅";
                 feedback.className = "feedback-area feedback-correct";
@@ -913,7 +974,8 @@
             } else {
                 consecutiveCorrectAnswers = 0;
                 deactivateFireEffect();
-                feedbackMessage.textContent = `Incorrect. The answer was ${correctAnswer}. 🙁`;
+                let correctAnswerText = (altAnswer !== null && answer !== altAnswer) ? `${answer} or ${altAnswer}` : answer;
+                feedbackMessage.textContent = `Incorrect. The answer was ${correctAnswerText}. 🙁`;
                 feedback.className = "feedback-area feedback-incorrect";
                 playWrongSound();
             }
